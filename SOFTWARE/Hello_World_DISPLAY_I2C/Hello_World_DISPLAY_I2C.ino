@@ -1,64 +1,61 @@
 /*
-    LCD_I2C - Arduino library to control a 16x2 LCD via an I2C adapter based on PCF8574
-
-    Copyright(C) 2020 Blackhack <davidaristi.0504@gmail.com>
-
-    This program is free software : you can redistribute it and /or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    This program is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with this program.If not, see < https://www.gnu.org/licenses/>.
+Projeto: Rele eletrônico de monitoramento de temperatura e acionamento.
+AUTOR: Gilmar 
+DATA: 13/06/2022
+OBJETIVO:
+IMPRIMIR NO DISPLAY DISPLAY DUAS TEMPERATURAS CONVERTIDAS PELOS SENSORES LM35
+CONTROLAR SAÍDAS DIGITAIS 
+Etapa de desenvolvimento
+Controle do display LCD 16x2
 */
+// --- Bibliotecas Auxiliares       --- //
+#include <LCD_I2C.h> // biblioteca da interface I2C para acionar display
+// =================================================================================
+// --- Instâncias                   --- //
+// Estou criando um objeto da classe LCD_I2C
+// para saber mais pesquise por programação orientada a objetos!!!!
+LCD_I2C lcd(0x27, 16, 2); // Endereçamento do display na rede I2c o padrão é o endereço hexadecimal 27 (Default address of most PCF8574 modules, change according)
+LCD_I2C lcd_2(0x26, 16, 2); // Prova de configuração do display alterado o endereço fisicamente para provar funcionamento com dois displays no mesmo barrametno de dados.
+// =================================================================================
+// --- Variáveis Globais ---
 
-#include <LCD_I2C.h>
+// =================================================================================
+// --- Protótipo das Funções  organizados em outro arquivo---
 
-LCD_I2C lcd(0x27, 16, 2); // Default address of most PCF8574 modules, change according
-LCD_I2C lcd_2(0x26, 16, 2); // Default address of most PCF8574 modules, change according
 
+// =================================================================================
+// --- Configurações Iniciais ---
 void setup()
 {
-    lcd.begin(); // If you are using more I2C devices using the Wire library use lcd.begin(false)
-                 // this stop the library(LCD_I2C) from calling Wire.begin()
-    lcd.backlight();
-    lcd_2.begin(); 
-    lcd_2.backlight();
-}
-
+    lcd.begin(); // usando a função da biblioteca do display para partir o display
+    lcd.backlight(); // ligando as luzes do display função dentro da biblioteca
+ 
+} // end setup
+// =================================================================================
+// --- Loop Infinito ---
 void loop()
 {
-    lcd.print("     Hello"); // You can make spaces using well... spaces
-    lcd.setCursor(5, 1); // Or setting the cursor in the desired position.
+    lcd.setCursor(0, 0); // definindo as posições iniciais da msg
+    lcd.print("     Hello"); // mandando um aoba para o display
+    lcd.setCursor(5, 1); // definindo as posições iniciais da msg
     lcd.print("END 27!");
-    delay(500);
-    lcd_2.print("     Hello"); // You can make spaces using well... spaces
-    lcd_2.setCursor(5, 1); // Or setting the cursor in the desired position.
-    lcd_2.print("END 26!");
-    delay(500);
+    delay(500);// função que aguarda o tempo de 500 ms para proceguir no código
 
-    // Flashing the backlight
-    for (int i = 0; i < 5; ++i)
-    {
-        lcd.backlight();
+    // fazer o display piscar só pra lembrar do natal!
+    for (int i = 0; i < 5; ++i){
+        lcd.backlight(); // liga
         delay(50);
-        lcd.noBacklight();
+        lcd.noBacklight(); // nao liga!!!
         delay(50);
         lcd_2.backlight();
         delay(50);
         lcd_2.noBacklight();
         delay(50);
-    }
+    }// end for
+ 
+    lcd.clear(); // limpando o texto do display
+    delay(500);
+     
+}// end loop
 
-    lcd.backlight();
-    lcd.clear();
-    delay(500);
-    lcd_2.backlight();
-    lcd_2.clear();
-    delay(500);
-}
+// =================================================================================
