@@ -49,7 +49,8 @@ static boolean  flag4               =   0,
 
 unsigned long   timeold             =   0; //variavel que armazena o tempo
 int             temporizador        =   1000, // tempo em milisegundos!!!!
-                cont                =  0; // variavel temporaria
+                cont                =  0, // variavel temporaria
+                temp                =  1000;
 
 // =================================================================================
 // --- Protótipo das Funções  ---
@@ -134,7 +135,8 @@ void readKey() {
                 Serial.println("partiu bt1!  "); // debug via serial
                 delay(25);
                 int partir=1, parar=0;
-                rele_eletronico    (partir, parar);
+                
+                rele_eletronico    (partir, parar,temp);
                 cont = 0;
             }
             flag1 = 0x01;
@@ -154,7 +156,7 @@ void readKey() {
                 Serial.println("partiu bt2!  "); 
                 delay(25);
                 int partir=0, parar=1;
-                rele_eletronico    (partir, parar);
+                rele_eletronico    (partir, parar,temp);
                 // colocar funcao aqui
                 cont = 0;
             }
@@ -174,7 +176,7 @@ void readKey() {
         {
             int partir=0, parar=1;
             digitalWrite(led_falha,        HIGH    );
-            rele_eletronico    (partir, parar);
+            rele_eletronico    (partir, parar,temp);
         }else{
             digitalWrite(led_falha,        LOW     );
         }// end if
