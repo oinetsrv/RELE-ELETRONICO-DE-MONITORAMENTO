@@ -83,6 +83,7 @@ void setup()
         pinMode(led_k2,         OUTPUT          );
         pinMode(led_k3,         OUTPUT          );
         pinMode(led_falha,      OUTPUT          );
+        pinMode(buzzer,         OUTPUT          );
  
  
     // armazena primeira leitura sensor motor
@@ -207,6 +208,14 @@ void temporizador_(int temp){
 }//endtemporizador
 // =================================================================================
 void partiu             (           ){
+    digitalWrite(buzzer,        HIGH);
+    delay(150);
+    digitalWrite(buzzer,        LOW );
+    delay(50);
+    digitalWrite(buzzer,        HIGH);
+    delay(150);
+    digitalWrite(buzzer,        LOW );
+
     lcd.backlight   (                   ); // liga
     delay           (50                 );
     lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
@@ -242,7 +251,9 @@ void partiu             (           ){
     lcd.clear       (                   );
     lcd.noBacklight (                   );
     delay(50);
- 
+    digitalWrite(buzzer,        HIGH);
+    delay(150);
+    digitalWrite(buzzer,        LOW );
 }// end partiu
 
      
