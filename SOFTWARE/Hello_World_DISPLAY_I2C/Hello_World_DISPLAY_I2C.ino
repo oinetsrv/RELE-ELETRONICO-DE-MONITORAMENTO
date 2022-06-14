@@ -10,6 +10,7 @@ ok  -   Controle do display LCD 16x2
 ok  -   Controle do sensor de temperatura
 ok  -   Controle de  saidas     digitais
 ok  -   Controle de  entradas   digitais
+Rotina de partida
 imprementar logica projeto
 */
 // --- Bibliotecas Auxiliares       --- //
@@ -25,8 +26,8 @@ imprementar logica projeto
 #define led_k3 5   //  
 #define led_falha 6   //  
 
-#define Bt1 7   //
-#define Bt2 8   //    
+#define bt1 7   //
+#define bt2 8   //    
 #define interlock 9   //  
 // =================================================================================
 // --- Instâncias                   --- //
@@ -46,8 +47,10 @@ float   valor_analog_lm35_motor     =   0.0,
 static boolean  flag4               =   0,
                 flag5               =   0; // variavel usada para armazenar mudança de estado dos botoes
 
-unsigned long timeold               =   0; //variavel que armazena o tempo
-int temporizador                    =   1000; // tempo em milisegundos!!!!
+unsigned long   timeold             =   0; //variavel que armazena o tempo
+int             temporizador        =   1000, // tempo em milisegundos!!!!
+                cont                =  0; // variavel temporaria
+
 // =================================================================================
 // --- Protótipo das Funções  ---
 // Rotina para ler sensor motor retorna a leitura convertida
@@ -56,9 +59,10 @@ float ler_sensor_motor  (           );
 float ler_sensor_mancal (           );
 // Rotina que le os botões
 void readKey            (           ); 
-//
+// Rotina de temporizador que não para a leitura dos botoes
 void temporizador_      (int temp   );
-
+// Rotina de partida do equipamento
+void partiu             (           ); 
 // =================================================================================
 // --- Configurações Iniciais ---
 void setup()
@@ -71,8 +75,8 @@ void setup()
     pinMode(pin_lm35_motor,     INPUT           ); // Define o sensor como uma entrada de sinal
     pinMode(pin_lm35_mancal,    INPUT           ); // Define o sensor como uma entrada de sinal
     // entradas digitais
-        pinMode(Bt1,            INPUT_PULLUP    );
-        pinMode(Bt2,            INPUT_PULLUP    );
+        pinMode(bt1,            INPUT_PULLUP    );
+        pinMode(bt2,            INPUT_PULLUP    );
         pinMode(interlock,      INPUT_PULLUP    );
     // saidas digitais
         pinMode(led_k1,         OUTPUT          );
@@ -139,24 +143,23 @@ void loop()
  
 }// end loop
 
-// =================================================================================
+// ===================  Desenvolvimento de funções   ===============================
 float ler_sensor_motor (){
     valor_analog_lm35_motor = float(analogRead(pin_lm35_motor));
     tensao_motor = (valor_analog_lm35_motor * 5) / 1023;
     temperatura_motor = tensao_motor / 0.010;
     return  temperatura_motor;
 }// end ler_sensor_motor
-
+// =================================================================================
 float ler_sensor_mancal (){
     valor_analog_lm35_mancal = float(analogRead(pin_lm35_mancal));
     tensao_mancal = (valor_analog_lm35_mancal * 5) / 1023;
     temperatura_mancal = tensao_mancal / 0.010;
     return  temperatura_mancal;
 }// end ler_sensor_motor
-
+// =================================================================================
 void readKey() {
         static boolean flag1 = 0, flag2 = 0, flag3 = 0; // teste local
-
         if (digitalRead(bt1)) {
             if (flag4 == 1) {
                 Serial.println("partiu bt1!  "); // debug via serial
@@ -193,7 +196,7 @@ void readKey() {
             delay(10);
         }
 } // readKey
-
+// =================================================================================
 void temporizador_(int temp){
     if (millis() - timeold >= temp){
         Serial.print    ("O intervado maior que  "  );
@@ -202,5 +205,44 @@ void temporizador_(int temp){
         timeold = millis();
     }// end if
 }//endtemporizador
+// =================================================================================
+void partiu             (           ){
+    lcd.backlight   (                   ); // liga
+    delay           (50                 );
+    lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
+    lcd.print       ("Colocar nome uni" ); // mandando um aoba para o display
+                    //1234567890123456
+    lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
+    lcd.print       ("nome  disciplina" );
+    delay           (2500               );// função que aguarda o tempo de 500 ms para proceguir no código
+    lcd.clear       (                   );
+    lcd.noBacklight (                   );
+    delay(50);
+    //
+    lcd.backlight   (                   ); // liga
+    delay           (50                 );
+    lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
+    lcd.print       ("nome do aluno   " ); // mandando um aoba para o display
+                    //1234567890123456
+    lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
+    lcd.print       ("RA do aluno     " );
+    delay           (2500               );// função que aguarda o tempo de 500 ms para proceguir no código
+    lcd.clear       (                   );
+    lcd.noBacklight (                   );
+    delay(50);
+    //
+    lcd.backlight   (                   ); // liga
+    delay           (50                 );
+    lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
+    lcd.print       ("nome do equip   " ); // mandando um aoba para o display
+                    //1234567890123456
+    lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
+    lcd.print       ("Seja bem vindo  " );
+    delay           (2500               );// função que aguarda o tempo de 500 ms para proceguir no código
+    lcd.clear       (                   );
+    lcd.noBacklight (                   );
+    delay(50);
+ 
+}// end partiu
 
      
