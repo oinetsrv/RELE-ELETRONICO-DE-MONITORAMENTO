@@ -18,16 +18,16 @@ Juntar todas as lógicas e testar no proteus
 #include <LCD_I2C.h> // biblioteca da interface I2C para acionar display
 // =================================================================================
 // --- Mapeamento de Hardware ---
-#define pin_lm35_motor A0
-#define pin_lm35_mancal A1
-#define buzzer 12   // 
-#define led_k1 3   //  
-#define led_k2 4   //  
-#define led_k3 5   //  
-#define led_falha 6   //  
-#define bt1 7   //
-#define bt2 8   //    
-#define interlock 9   //  
+#define pin_lm35_motor A0   //
+#define pin_lm35_mancal A1  //
+#define buzzer 7           // 
+#define led_k1 2            //  
+#define led_k2 3            //  
+#define led_k3 4            //  
+#define led_falha 6         //  
+#define bt1 8               //
+#define bt2 9               //    
+#define interlock 5         //  
 // =================================================================================
 // --- Instâncias                   --- //
 // Estou criando um objeto da classe LCD_I2C
@@ -49,7 +49,8 @@ static boolean  flag4               =   0,
 unsigned long   timeold             =   0; //variavel que armazena o tempo
 int             temporizador        =   1000, // tempo em milisegundos!!!!
                 cont                =  0, // variavel temporaria
-                temp                =  1000;
+                temp                =  1000,
+                TEMP_RA             = 4000;
 // =================================================================================
 // --- Protótipo das Funções  ---
 // Rotina para ler sensor motor retorna a leitura convertida
@@ -117,15 +118,15 @@ float ler_sensor_mancal (){
 // =================================================================================
 void readKey() {
     static boolean flag1 = 0, flag2 = 0, flag3 = 0; // teste local
-        if (digitalRead(bt1) && !digitalRead(interlock)) {
-            if (flag4 == 1) {
+        if (digitalRead(bt1) && !digitalRead(interlock) ) {
+            if (flag4 == 1 ) {
                 Serial.println("partiu bt1!  "); // debug via serial
                 delay(25);
                 int partir=1, parar=0;
-                
-                rele_eletronico    (partir, parar,temp);
-                cont = 0;
+                if (cont == 0) rele_eletronico    (partir, parar,TEMP_RA); 
+                cont = 1;
             }
+
             flag1 = 0x01;
             flag4 = 0x00; // teste memoria de outros testes
             delay(10);
@@ -142,9 +143,9 @@ void readKey() {
                 Serial.println("partiu bt2!  "); 
                 delay(25);
                 int partir=0, parar=1;
-                rele_eletronico    (partir, parar,temp);
-                // colocar funcao aqui
+                rele_eletronico    (partir, parar,TEMP_RA);
                 cont = 0;
+                
             }// end if
             flag2 = 0x01;
             flag5 = 0x00; // teste memoria de outros testes
@@ -160,7 +161,8 @@ void readKey() {
         {
             int partir=0, parar=1;
             digitalWrite(led_falha,        HIGH    );
-            rele_eletronico    (partir, parar,temp);
+            rele_eletronico    (partir, parar,TEMP_RA);
+            cont = 0;
         }else{
             digitalWrite(led_falha,        LOW     );
         }// end if
@@ -189,10 +191,10 @@ void partiu             (           ){
     lcd.backlight   (                   ); // liga
     delay           (50                 );
     lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
-    lcd.print       ("Colocar nome uni" ); // mandando um aoba para o display
+    lcd.print       ("UNIUBE QUIRINOPO" ); // mandando um aoba para o display
                     //1234567890123456
     lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
-    lcd.print       ("nome  disciplina" );
+    lcd.print       ("PROJETO ENG 01"   );
     delay           (2500               );// função que aguarda o tempo de 500 ms para proceguir no código
     lcd.clear       (                   );
     lcd.noBacklight (                   );
@@ -201,10 +203,10 @@ void partiu             (           ){
     lcd.backlight   (                   ); // liga
     delay           (50                 );
     lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
-    lcd.print       ("nome do aluno   " ); // mandando um aoba para o display
+    lcd.print       ("GILMAR P ARAUJO" ); // mandando um aoba para o display
                     //1234567890123456
     lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
-    lcd.print       ("RA do aluno     " );
+    lcd.print       ("RA:1125833     "  );
     delay           (2500               );// função que aguarda o tempo de 500 ms para proceguir no código
     lcd.clear       (                   );
     lcd.noBacklight (                   );
@@ -213,7 +215,7 @@ void partiu             (           ){
     lcd.backlight   (                   ); // liga
     delay           (50                 );
     lcd.setCursor   (0, 0               ); // definindo as posições iniciais da msg
-    lcd.print       ("nome do equip   " ); // mandando um aoba para o display
+    lcd.print       ("RELE ELETRONICO" ); // mandando um aoba para o display
                     //1234567890123456
     lcd.setCursor   (0, 1               ); // definindo as posições iniciais da msg
     lcd.print       ("Seja bem vindo  " );
@@ -228,11 +230,14 @@ void partiu             (           ){
 // =================================================================================
 void mostrar_temp (){
     // LINHA DE DE CIMA DO DISPLAY
+    lcd.clear       (                   );
+    delay(50);
     lcd.setCursor   (0, 0               ); 
     lcd.print       ("INTERLOCK:"       );
     lcd.setCursor   (10, 0              );
     if (digitalRead(interlock)) lcd.print ("ATIVO!");
-    if (digitalRead(interlock)) lcd.print ("LIVRE!");
+    if (!digitalRead(interlock)) lcd.print ("LIVRE!");
+    
     // FIM LINHA DE DE CIMA DO DISPLAY
         // LINHA DE BAIXO DO DISPLAY
         lcd.setCursor   (0, 1               ); 
@@ -247,42 +252,65 @@ void mostrar_temp (){
         lcd.print       (ler_sensor_mancal());
         lcd.setCursor   (15, 1              ); 
         lcd.print       ("C"                );
-        delay           (100                );
-        lcd.clear       (                   );
+        delay           (150                );
+
         lcd.noBacklight (                   );
         delay(50);
         // FIM LINHA DE BAIXO DO DISPLAY
 }// end mostrar_temp 
 // =================================================================================
-void rele_eletronico    ( int partir, int parar, int temporizador ){
-    if (partir == 1 && parar == 0)
+void rele_eletronico    ( int partir, int parar, int TEMP_RA ){
+    if (partir == 1 && parar == 0 )
         {
             digitalWrite(led_k1,        HIGH    );
-            digitalWrite(led_k2,        LOW     );
-            digitalWrite(led_k3,        HIGH    );
-            while (!digitalRead(interlock) && (millis() - timeold >= temporizador) )
+            digitalWrite(led_k2,        HIGH     );
+            digitalWrite(led_k3,        LOW     );
+            //delay(1000);
+            timeold = millis();
+            while ( millis() - timeold <=  TEMP_RA) 
             {
-                if (digitalRead(interlock))
+                if (digitalRead(interlock) || digitalRead(bt2))
                 {
                     digitalWrite(led_k1,        LOW    );
                     digitalWrite(led_k2,        LOW    );
                     digitalWrite(led_k3,        LOW    );
+                    break;
                 }// end if
             }// end while
+                
             timeold = millis();
-                if (!digitalRead(interlock))
-                {
-                    digitalWrite(led_k3,        LOW     );
-                    delay       (500                    );
-                    digitalWrite(led_k2,        HIGH    );
-                }// end if
-        }// end if 
+                if (!digitalRead(interlock) || !digitalRead(bt2))
+                    {
+                        digitalWrite(led_k2,        LOW     );
+                        delay       (500                    );
+                        if (digitalRead(interlock) || digitalRead(bt2))
+                            {
+                                digitalWrite(led_k1,        LOW    );
+                                digitalWrite(led_k2,        LOW    );
+                                digitalWrite(led_k3,        LOW    );
+                            }else{
+                                digitalWrite(led_k3,        HIGH    );
+                            } // end if
+                        
+                    }// end if
+        }// END IF
+
+
+       
     if (partir == 0 && parar == 1)
         {
+              
             digitalWrite(led_k1,        LOW    );
             digitalWrite(led_k2,        LOW    );
             digitalWrite(led_k3,        LOW    ); 
         }// end if 
+////hhhghjgjg
+/* 
+if(tempera motor for menor que setpoint) faça
+if(tempera mancal for menor que setpoint) faça
+
+*/
+
 }// end rele_eletronico
 // =================================================================================
 /*  // armazena primeira leitura sensor motor
