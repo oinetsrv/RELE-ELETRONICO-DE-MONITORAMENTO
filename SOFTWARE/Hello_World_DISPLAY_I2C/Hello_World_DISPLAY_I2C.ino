@@ -19,7 +19,7 @@ Juntar todas as lógicas e testar no proteus
 // =================================================================================
 // --- Mapeamento de Hardware ---
 #define pin_lm35_motor A0   //
-#define pin_lm35_mancal A1  //
+#define pin_lm35_mancal A3  //
 #define buzzer 7           // 
 #define led_k1 2            //  
 #define led_k2 3            //  
@@ -50,7 +50,8 @@ unsigned long   timeold             =   0; //variavel que armazena o tempo
 int             temporizador        =   1000, // tempo em milisegundos!!!!
                 cont                =  0, // variavel temporaria
                 temp                =  1000,
-                TEMP_RA             = 4000;
+                TEMP_RA             = 23000;
+                int teste_temp = 0;
 // =================================================================================
 // --- Protótipo das Funções  ---
 // Rotina para ler sensor motor retorna a leitura convertida
@@ -94,31 +95,42 @@ void setup()
 void loop(){
     readKey();
     delay(10);
+
         if (millis() - timeold >= temp){
-            //Serial.print    ("O intervado maior que  "  );
-            //Serial.println  (temp);
+            Serial.print    ("O intervado maior que  "  );
+            Serial.println  (temp);
             mostrar_temp ();
             timeold = millis();
         }// end if
 }// end loop
 // ===================  Desenvolvimento de funções   ===============================
-float ler_sensor_motor (){
-    valor_analog_lm35_motor = float(analogRead(pin_lm35_motor));
-    tensao_motor = (valor_analog_lm35_motor * 5) / 1023;
-    temperatura_motor = tensao_motor / 0.010;
-    return  temperatura_motor;
+float ler_sensor_motor (){//a0
+    float v_lm35_motor  =0.00;
+    float t_motor       =0.0;
+    float temp_motor    =0.0;
+    v_lm35_motor = analogRead(pin_lm35_motor);
+    t_motor = (v_lm35_motor/1024) * 5000;
+    temp_motor = t_motor / 100;
+    return  temp_motor;
+
+
 }// end ler_sensor_motor
 // =================================================================================
-float ler_sensor_mancal (){
-    valor_analog_lm35_mancal = float(analogRead(pin_lm35_mancal));
-    tensao_mancal = (valor_analog_lm35_mancal * 5) / 1023;
-    temperatura_mancal = tensao_mancal / 0.010;
-    return  temperatura_mancal;
+
+float ler_sensor_mancal (){//a3
+     float v_lm35_mancal  =0.00;
+    float t_mancal       =0.0;
+    float temp_mancal    =0.0;
+    v_lm35_mancal = analogRead(pin_lm35_mancal);
+    t_mancal = (v_lm35_mancal/1024) * 5000;
+    temp_mancal = t_mancal / 100;
+    return  temp_mancal;
 }// end ler_sensor_motor
 // =================================================================================
 void readKey() {
     static boolean flag1 = 0, flag2 = 0, flag3 = 0; // teste local
-        if (digitalRead(bt1) && !digitalRead(interlock) ) {
+
+        if (digitalRead(bt1) && !digitalRead(interlock) && teste_temp == 0  ) {
             if (flag4 == 1 ) {
                 Serial.println("partiu bt1!  "); // debug via serial
                 delay(25);
@@ -126,7 +138,6 @@ void readKey() {
                 if (cont == 0) rele_eletronico    (partir, parar,TEMP_RA); 
                 cont = 1;
             }
-
             flag1 = 0x01;
             flag4 = 0x00; // teste memoria de outros testes
             delay(10);
@@ -145,7 +156,6 @@ void readKey() {
                 int partir=0, parar=1;
                 rele_eletronico    (partir, parar,TEMP_RA);
                 cont = 0;
-                
             }// end if
             flag2 = 0x01;
             flag5 = 0x00; // teste memoria de outros testes
@@ -157,7 +167,7 @@ void readKey() {
             Serial.println("RESET bt2");
             delay(10);
         }// end if
-        if (digitalRead(interlock))
+        if (digitalRead(interlock) || teste_temp == 1)
         {
             int partir=0, parar=1;
             digitalWrite(led_falha,        HIGH    );
@@ -223,6 +233,7 @@ void partiu             (           ){
     lcd.clear       (                   );
     lcd.noBacklight (                   );
     delay(50);
+    lcd.backlight   (                   ); // liga
     digitalWrite(buzzer,        HIGH);
     delay(150);
     digitalWrite(buzzer,        LOW );
@@ -230,6 +241,7 @@ void partiu             (           ){
 // =================================================================================
 void mostrar_temp (){
     // LINHA DE DE CIMA DO DISPLAY
+    lcd.backlight   (                   );
     lcd.clear       (                   );
     delay(50);
     lcd.setCursor   (0, 0               ); 
@@ -237,14 +249,32 @@ void mostrar_temp (){
     lcd.setCursor   (10, 0              );
     if (digitalRead(interlock)) lcd.print ("ATIVO!");
     if (!digitalRead(interlock)) lcd.print ("LIVRE!");
-    
+    if (!digitalRead(interlock)) lcd.print ("LIVRE!");
+    float tmotor = ler_sensor_motor();
+    float tmancal = ler_sensor_mancal();
+    //Serial.print("tmotor:");
+    //Serial.print(tmotor);
+    //Serial.print("tmancal:");
+    //Serial.print(tmancal);
+     //Serial.println("");
+    if (tmotor >= 27 || tmancal >= 27)
+    {
+        teste_temp = 1;
+        lcd.setCursor   (0, 0               ); 
+        lcd.print       ("ALARME:"       );
+        lcd.setCursor   (7, 0              );
+        lcd.print ("TEMPERATURA");
+          
+    }else{
+        teste_temp = 0;
+    }
     // FIM LINHA DE DE CIMA DO DISPLAY
         // LINHA DE BAIXO DO DISPLAY
         lcd.setCursor   (0, 1               ); 
         lcd.print       ("MT"               );
         lcd.setCursor   (2, 1               ); 
         lcd.print       (ler_sensor_motor() );
-        lcd.setCursor   (7, 1               ); 
+        lcd.setCursor   (6, 1               ); 
         lcd.print       ("C"                );
         lcd.setCursor   (9, 1               );
         lcd.print       ("MC"               );
@@ -252,9 +282,7 @@ void mostrar_temp (){
         lcd.print       (ler_sensor_mancal());
         lcd.setCursor   (15, 1              ); 
         lcd.print       ("C"                );
-        delay           (150                );
-
-        lcd.noBacklight (                   );
+        delay           (100                );
         delay(50);
         // FIM LINHA DE BAIXO DO DISPLAY
 }// end mostrar_temp 
@@ -277,7 +305,7 @@ void rele_eletronico    ( int partir, int parar, int TEMP_RA ){
                     break;
                 }// end if
             }// end while
-                
+
             timeold = millis();
                 if (!digitalRead(interlock) || !digitalRead(bt2))
                     {
@@ -290,16 +318,12 @@ void rele_eletronico    ( int partir, int parar, int TEMP_RA ){
                                 digitalWrite(led_k3,        LOW    );
                             }else{
                                 digitalWrite(led_k3,        HIGH    );
-                            } // end if
-                        
+                            } // end if 
                     }// end if
         }// END IF
 
-
-       
     if (partir == 0 && parar == 1)
-        {
-              
+        {  
             digitalWrite(led_k1,        LOW    );
             digitalWrite(led_k2,        LOW    );
             digitalWrite(led_k3,        LOW    ); 
